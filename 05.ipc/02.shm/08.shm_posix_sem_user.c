@@ -12,36 +12,33 @@
 #define KEY_NUM     0x2222
 #define	MEM_SIZE	1024
         
-const char *countFile = "count.db";
 int main(int argc, char **argv){       
-	int count = 100;
 	int fd; 
 	int res;
 	sem_t *mysem;
-	
+
 	int shm_id, shm;
 	void *shm_addr;
 	
-
 	printf("Started --------------------\n");
-	if((shm_id = shmget((key_t)KEY_NUM,MEM_SIZE,IPC_CREAT|0666)) == -1){
+	if((shm_id = shmget((key_t)KEY_NUM,MEM_SIZE,IPC_CREAT|0666)) == -1) {
 		perror("shmget");
 		exit(1);
 	}
 
-	if((shm_addr = shmat(shm_id, NULL, 0)) == (void *)-1){
+	if((shm_addr = shmat(shm_id, NULL, 0)) == (void *)-1) {
 		perror("shmat");
 		exit(1);
 	}
 	
 #ifdef NAMED
-	if((mysem = sem_open("mysem", O_CREAT, 0777, 1)) == SEM_FAILED)
-	{
+	printf("Named semaphore ---------------\n");
+	if((mysem = sem_open("mysem", O_CREAT, 0777, 1)) == SEM_FAILED) {
 			perror("Sem Open Error");
 			return 1;
 	}
 #else
-	printf("semaphore ---------------\n");
+	printf("Unnamed semaphore ---------------\n");
 	if ((shm = shm_open("myshm", O_RDWR | O_CREAT, S_IRWXU)) < 0) {
 		perror("shm_open");
 		exit(1);
@@ -61,8 +58,6 @@ int main(int argc, char **argv){
         return 1;
     }
 #endif
-	
-
 	for(int i=0; i<500; i++){  
 #ifdef SEM	
 		sem_wait(mysem);
@@ -83,7 +78,10 @@ int main(int argc, char **argv){
 		perror("shmdt");
 		exit(2);
 	}
-#ifndef NAMED
+#ifdef NAMED
+	sem_close(mysem);
+	sem_unlink("mysem");
+#else
 	sem_destroy(mysem);
 #endif
 }               

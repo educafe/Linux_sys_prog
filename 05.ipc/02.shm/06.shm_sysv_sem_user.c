@@ -10,8 +10,8 @@
 
 #define KEY_NUM     0x2222
 #define	MEM_SIZE	1024
-static int	semid;
 
+static int	semid;
 void lock(){
 	struct sembuf pbuf;			//set of semaphore *sops
 	pbuf.sem_num = 0;			//세마포어 번호
@@ -21,7 +21,6 @@ void lock(){
 		perror("p()-semop");
 	}
 }
-
 void unlock(){
 	struct sembuf vbuf;			//set of semaphore *sops
 	vbuf.sem_num = 0;			//세마포어 번호
@@ -31,17 +30,17 @@ void unlock(){
 		perror("v()-semop");
 	}
 }
+// union senum {
+	// int val;
+	// struct semid_ds *buf;
+	// unsigned short int *array;
+// } sem_ctrl;
 
 int main() {
 	int shm_id;
 	void *shm_addr;
 	int i, j;
 	struct shmid_ds shm_stat;
-	union senum {
-		int val;
-		struct semid_ds *buf;
-		unsigned short int *array;
-	} sem_ctrl;
 	
 	int sem_val;
 	//struct sembuf sem_ops;
@@ -56,14 +55,12 @@ int main() {
 		perror("shmget");
 		exit(1);
 	}
-
-#if 1 
+	
+#if 0
 	sem_val=semctl(semid, 0, GETVAL, sem_ctrl);
 	printf(" sema:%d\n ", sem_val);
-	sem_ctrl.val=sem_val;
-	semctl(semid, 0, SETVAL, sem_ctrl);
 #endif
-	
+
 	if((shm_addr = shmat(shm_id, NULL, 0)) == (void *)-1){
 		perror("shmat");
 		exit(1);
@@ -82,10 +79,6 @@ int main() {
 		fflush(stdout);
 #ifdef SEM
 		unlock();
-#endif
-#if 0
-	sem_val=semctl(semid, 0, GETVAL, sem_ctrl);
-	printf(" sema:%d ", sem_val);
 #endif
 	}
 	
